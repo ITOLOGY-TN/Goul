@@ -39,7 +39,7 @@ mascot column is dropped.
 
 First illustrated theme, generated 2026-09-30 from the mockup kept as
 `Resources/Themes/night-deck/reference.png`. Two values were tuned against the artwork:
-`panelInsets` 260 (the frame is thicker than the prompt asked) and `watermarkOpacity` 0.14.
+`panelInsets` 210 (the corner ropes and rings of the regenerated frame, so they never stretch) and `watermarkOpacity` 0.14. The frame was regenerated once: the first render had a massive wood frame; the second, prompted from the reference alone, matched it.
 
 ## Checking a theme without launching the app
 

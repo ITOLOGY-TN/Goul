@@ -78,7 +78,7 @@ struct IllustratedScene: View {
     private var panel: some View {
         ZStack {
             theme.frameImage()?.resizable(capInsets: theme.frameCapInsets, resizingMode: .stretch)
-            watermarks.padding(S.frameBorder)
+            watermarks.padding(S.contentInset)
             Group {
                 switch section {
                 case .dictation: dictation
@@ -94,7 +94,7 @@ struct IllustratedScene: View {
                     }
                 }
             }
-            .padding(S.frameBorder + S.panelPadding)
+            .padding(S.contentInset)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

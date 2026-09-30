@@ -52,10 +52,11 @@ enum GoulTheme {
 
     /// The illustrated-theme layout (asset packs). Sizes only; colours come from the theme.
     enum Scene {
-        /// On-screen thickness of the 9-slice panel frame, whatever the source resolution.
-        static let frameBorder: CGFloat = 40
-        /// Content padding inside the frame border.
-        static let panelPadding: CGFloat = 22
+        /// On-screen size of the 9-slice corner region (`panelInsets` source pixels map
+        /// to this), whatever the source resolution. The visible wood is a fraction of it.
+        static let frameBorder: CGFloat = 96
+        /// Distance from the panel's outer edge to its content, independent of the frame.
+        static let contentInset: CGFloat = 60
         static let panelMargin: CGFloat = 24
         static let logoHeight: CGFloat = 84
         static let dividerHeight: CGFloat = 12
