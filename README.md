@@ -138,6 +138,7 @@ Sources/
 ├── GoulCore/                   pure logic: SpokenLanguage, LanguageDetector, LanguageRules, SessionGate
 └── MurmurDictionary/           the dictionary engine, shared contract with the Windows port
 Tests/                          GoulCoreTests, MurmurDictionaryTests (shared vectors)
+shared/                         dictionary-test-vectors.json, the correction contract
 Resources/                      icon, artwork, Brook, entitlements, Info.plist
 docs/                           LANGUAGE-DETECTION, COMMAND-MODE, HUD, THEME-ASSET-PROMPT, PARAKEET-WINDOWS
 Tools/                          language-probe.swift, makeicon.swift
@@ -170,6 +171,10 @@ GOUL_SETTINGS_SNAPSHOT=/tmp/settings.png /private/tmp/goul-build/Goul.app/Conten
 - Themes: generated asset packs (`docs/THEME-ASSET-PROMPT.md`), a Night Deck theme first.
 - Onboarding for the two permissions.
 - Notarization for distribution.
+
+## License
+
+MIT. See `LICENSE`. Brook and the One Piece imagery are not covered by it.
 
 ## Credits
 
