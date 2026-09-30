@@ -98,7 +98,7 @@ MANIFEST
   },
   "font": { "display": "serif" | "sans" | "mono" | "rounded" },
   "panelInsets": 160,             // border thickness of panel-frame.png in px
-  "watermarkOpacity": 0.08
+  "watermarkOpacity": 0.12
 }
 
 DELIVERY

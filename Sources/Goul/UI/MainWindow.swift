@@ -8,6 +8,7 @@ struct MainWindow: View {
     @State private var section: Section = .dictation
     @State private var settings = Settings.shared
     @State private var store = RunStore.shared
+    @State private var themes = ThemeManager.shared
     @State private var query = ""
     @State private var showClear = false
     enum Section: String, CaseIterable {
@@ -17,6 +18,17 @@ struct MainWindow: View {
         }
     }
     var body: some View {
+        Group {
+            if themes.current.isIllustrated { IllustratedScene(controller: controller, theme: themes.current, section: $section) }
+            else { classic }
+        }
+        .frame(minWidth: GoulTheme.minimumWidth, minHeight: GoulTheme.minimumHeight)
+        .preferredColorScheme(.light)
+        .tint(GoulTheme.ocean)
+    }
+
+    /// The original logbook layout: rail, masthead, parchment page.
+    private var classic: some View {
         HStack(spacing: 0) {
             sidebar
             VStack(spacing: 0) {
@@ -34,9 +46,6 @@ struct MainWindow: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(GoulTheme.paper)
         }
-        .frame(minWidth: GoulTheme.minimumWidth, minHeight: GoulTheme.minimumHeight)
-        .preferredColorScheme(.light)
-        .tint(GoulTheme.ocean)
     }
     private var sidebar: some View {
         VStack(alignment: .leading, spacing: GoulTheme.gap) {
@@ -186,7 +195,7 @@ struct MainWindow: View {
     }
 }
 
-private struct LogEntry: View {
+struct LogEntry: View {
     let run: DictationRun
     @State private var copied = false
     var body: some View {

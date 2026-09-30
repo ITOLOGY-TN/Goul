@@ -8,18 +8,32 @@ import SwiftUI
 // FORM: User-pinned One Piece world; seed daeb83d0 yields to the explicit brief.
 // FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md.
 enum GoulTheme {
-    static let ocean = Color(red: 0.055, green: 0.145, blue: 0.20)
-    static let paper = Color(red: 0.96, green: 0.92, blue: 0.84)
-    static let ink = Color(red: 0.09, green: 0.18, blue: 0.22)
-    static let muted = Color(red: 0.38, green: 0.34, blue: 0.27)
-    static let gold = Color(red: 0.86, green: 0.65, blue: 0.31)
-    static let line = Color(red: 0.76, green: 0.68, blue: 0.52)
-    static let red = Color(red: 0.70, green: 0.19, blue: 0.14)
+    // Palette and display fonts follow the active theme. Main-actor because the manager
+    // is; every SwiftUI body runs there. Layout tokens below stay plain constants.
+    @MainActor private static var palette: Theme.Palette { ThemeManager.shared.current.palette }
+    @MainActor static var ocean: Color { palette.chrome }
+    @MainActor static var paper: Color { palette.panel }
+    @MainActor static var ink: Color { palette.ink }
+    @MainActor static var muted: Color { palette.inkMuted }
+    @MainActor static var gold: Color { palette.accent }
+    @MainActor static var line: Color { palette.inkMuted.opacity(0.5) }
+    @MainActor static var red: Color { palette.record }
+    @MainActor static var inkOnChrome: Color { palette.inkOnChrome }
+    @MainActor static var instrument: Color { palette.instrument }
+
     static let body = Font.system(size: 14)
     static let caption = Font.system(size: 12, weight: .medium)
-    static let heading = Font.custom("Baskerville-Bold", size: 34)
-    static let title = Font.custom("Baskerville-Bold", size: 23)
-    static let brand = Font.custom("Baskerville-Bold", size: 36)
+    @MainActor static var heading: Font { display(34) }
+    @MainActor static var title: Font { display(23) }
+    @MainActor static var brand: Font { display(36) }
+    @MainActor static func display(_ size: CGFloat) -> Font {
+        switch ThemeManager.shared.current.fontStyle {
+        case .serif: .custom("Baskerville-Bold", size: size)
+        case .sans: .system(size: size, weight: .bold)
+        case .mono: .system(size: size, weight: .bold, design: .monospaced)
+        case .rounded: .system(size: size, weight: .bold, design: .rounded)
+        }
+    }
     static let rail: CGFloat = 208
     static let inset: CGFloat = 28
     static let gap: CGFloat = 16
@@ -35,6 +49,31 @@ enum GoulTheme {
     static let settingsHeight: CGFloat = 640
     static let statusDot: CGFloat = 9
     static let statusGood = Color(red: 0.36, green: 0.62, blue: 0.30)
+
+    /// The illustrated-theme layout (asset packs). Sizes only; colours come from the theme.
+    enum Scene {
+        /// On-screen thickness of the 9-slice panel frame, whatever the source resolution.
+        static let frameBorder: CGFloat = 54
+        /// Content padding inside the frame border.
+        static let panelPadding: CGFloat = 26
+        static let panelMargin: CGFloat = 24
+        static let logoHeight: CGFloat = 84
+        static let dividerHeight: CGFloat = 12
+        static let recordSize: CGFloat = 176
+        static let recordGlyph: CGFloat = 60
+        static let watermarkSize: CGFloat = 200
+        static let mascotColumn: CGFloat = 300
+        /// Below this window width the mascot column is dropped.
+        static let mascotMinimumWidth: CGFloat = 1180
+        static let mascotHeightFraction: CGFloat = 0.78
+        static let navPillOpacity: Double = 0.22
+        static let cardOpacity: Double = 0.42
+        static let cardRadius: CGFloat = 14
+        static let logoSidebarHeight: CGFloat = 96
+        static let logMaxHeight: CGFloat = 260
+        static let thumbnailWidth: CGFloat = 132
+        static let thumbnailHeight: CGFloat = 82
+    }
 
     /// The floating HUD: a small Wispr-Flow-sized pill with a miniature Brook peeking over
     /// its right end. No text by default; `Settings.liveTextEnabled` widens it to show the

@@ -129,6 +129,11 @@ fix the arbiter and its tests in `GoulCore`.
 `docs/COMMAND-MODE.md`. The cancel window is paid by every dictation on purpose; don't
 "optimise" it away without reading why it exists.
 
+**Themes are asset packs, not code.** `Resources/Themes/<slug>/` + `theme.json`, produced
+by the prompt in `docs/THEME-ASSET-PROMPT.md`; `docs/THEMES.md` explains loading and the
+scene layout. Don't hard-code a theme's colours or images anywhere: `GoulTheme` reads the
+active theme, and a new pack must work with zero Swift changes.
+
 **`log` may be shadowed in the user's shell.** Use `/usr/bin/log` explicitly.
 
 **Don't run the `.app` from the repo folder.** It's iCloud-synced and the sync engine can

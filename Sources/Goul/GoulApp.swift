@@ -37,6 +37,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NSApp.terminate(nil)
             return
         }
+        if let slug = ProcessInfo.processInfo.environment["GOUL_THEME_SNAPSHOT"] {
+            ThemeManager.shared.select(slug)
+            let renderer = ImageRenderer(content: MainWindow(controller: controller).frame(width: 1280, height: 820))
+            renderer.scale = 2
+            if let image = renderer.nsImage, let tiff = image.tiffRepresentation,
+               let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) {
+                try? png.write(to: URL(fileURLWithPath: "/tmp/goul-theme-\(slug).png"))
+            }
+            NSApp.terminate(nil)
+            return
+        }
         if let path = ProcessInfo.processInfo.environment["GOUL_SETTINGS_SNAPSHOT"] {
             for section in SettingsWindow.SettingsSection.allCases {
                 let renderer = ImageRenderer(content: SettingsWindow(controller: controller, section: section, scrolls: false)

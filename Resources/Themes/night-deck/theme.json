@@ -1,0 +1,18 @@
+{
+  "name": "Night Deck",
+  "colors": {
+    "chrome": "#0B2638",
+    "panel": "#E6C994",
+    "ink": "#132B3B",
+    "inkMuted": "#96704A",
+    "inkOnChrome": "#F4D9A1",
+    "accent": "#DDA746",
+    "record": "#B63832",
+    "instrument": "#F0A447"
+  },
+  "font": {
+    "display": "serif"
+  },
+  "panelInsets": 260,
+  "watermarkOpacity": 0.14
+}
