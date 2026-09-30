@@ -9,8 +9,12 @@ struct GoulApp: App {
         Window("Goul", id: "main") {
             MainWindow(controller: delegate.controller)
                 .onExitCommand { delegate.controller.cancelDictation() }
+                // The scene runs under the traffic lights; the title bar is transparent.
+                .ignoresSafeArea(.container, edges: .top)
+                .toolbarBackground(.hidden, for: .windowToolbar)
         }
-        .defaultSize(width: 1060, height: 740)
+        .windowStyle(.hiddenTitleBar)
+        .defaultSize(width: GoulTheme.Scene.defaultWindow.width, height: GoulTheme.Scene.defaultWindow.height)
         .windowResizability(.contentMinSize)
         .commands {
             CommandGroup(replacing: .newItem) {}
@@ -39,11 +43,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         if let slug = ProcessInfo.processInfo.environment["GOUL_THEME_SNAPSHOT"] {
             ThemeManager.shared.select(slug)
-            let renderer = ImageRenderer(content: MainWindow(controller: controller).frame(width: 1280, height: 820))
-            renderer.scale = 2
-            if let image = renderer.nsImage, let tiff = image.tiffRepresentation,
-               let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) {
-                try? png.write(to: URL(fileURLWithPath: "/tmp/goul-theme-\(slug).png"))
+            for (label, size) in [("large", CGSize(width: 1280, height: 840)), ("small", CGSize(width: 1000, height: 700))] {
+                let renderer = ImageRenderer(content: MainWindow(controller: controller).frame(width: size.width, height: size.height))
+                renderer.scale = 2
+                if let image = renderer.nsImage, let tiff = image.tiffRepresentation,
+                   let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) {
+                    try? png.write(to: URL(fileURLWithPath: "/tmp/goul-theme-\(slug)-\(label).png"))
+                }
             }
             NSApp.terminate(nil)
             return

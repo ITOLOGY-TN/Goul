@@ -53,9 +53,9 @@ enum GoulTheme {
     /// The illustrated-theme layout (asset packs). Sizes only; colours come from the theme.
     enum Scene {
         /// On-screen thickness of the 9-slice panel frame, whatever the source resolution.
-        static let frameBorder: CGFloat = 54
+        static let frameBorder: CGFloat = 40
         /// Content padding inside the frame border.
-        static let panelPadding: CGFloat = 26
+        static let panelPadding: CGFloat = 22
         static let panelMargin: CGFloat = 24
         static let logoHeight: CGFloat = 84
         static let dividerHeight: CGFloat = 12
@@ -71,6 +71,11 @@ enum GoulTheme {
         static let cardRadius: CGFloat = 14
         static let logoSidebarHeight: CGFloat = 96
         static let logMaxHeight: CGFloat = 260
+        /// Content height at which the dictation page is drawn at full size; below it,
+        /// logo, button and spacing scale down proportionally so nothing leaves the panel.
+        static let referenceHeight: CGFloat = 680
+        static let contentSpacing: CGFloat = 14
+        static let defaultWindow = CGSize(width: 1280, height: 840)
         static let thumbnailWidth: CGFloat = 132
         static let thumbnailHeight: CGFloat = 82
     }

@@ -19,11 +19,12 @@ struct IllustratedScene: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
+                // Scene under the traffic lights, like the mockup: no title bar strip.
                 theme.image("background")?.resizable().scaledToFill()
                     .frame(width: geometry.size.width, height: geometry.size.height).clipped()
                 HStack(spacing: 0) {
                     sidebar.frame(width: GoulTheme.rail)
-                    panel.padding(S.panelMargin)
+                    panel.padding(S.panelMargin).padding(.top, DS.Space.base)
                     if geometry.size.width >= S.mascotMinimumWidth {
                         mascot(height: geometry.size.height * S.mascotHeightFraction)
                             .frame(width: S.mascotColumn).frame(maxHeight: .infinity, alignment: .bottom)
@@ -41,7 +42,7 @@ struct IllustratedScene: View {
             VStack(alignment: .leading, spacing: DS.Space.snug) {
                 theme.image("logo-dark")?.resizable().scaledToFit()
                     .frame(height: S.logoSidebarHeight).frame(maxWidth: .infinity)
-                    .padding(.bottom, DS.Space.wide).accessibilityLabel("Goul")
+                    .padding(.top, DS.Space.panel).padding(.bottom, DS.Space.wide).accessibilityLabel("Goul")
                 ForEach(MainWindow.Section.allCases, id: \.self) { item in
                     Button { section = item } label: {
                         HStack(spacing: DS.Space.base) {
@@ -126,36 +127,41 @@ struct IllustratedScene: View {
     // MARK: - Dictation page
 
     private var dictation: some View {
-        VStack(spacing: DS.Space.roomy) {
-            theme.image("logo-light")?.resizable().scaledToFit().frame(height: S.logoHeight).accessibilityLabel("Goul")
-            divider
-            recordButton
-            Text(controller.state.isActive || controller.isPreparing
-                 ? controller.statusTitle : "Hold \(settings.pushToTalkKey.displayName) to speak")
-                .font(GoulTheme.title).foregroundStyle(GoulTheme.ink)
-            if controller.state.isActive {
-                ProgressView(value: Double(controller.level)).tint(GoulTheme.red).frame(maxWidth: S.recordSize * 2)
-                if !controller.transcript.isEmpty {
-                    Text(controller.transcript).font(GoulTheme.body).foregroundStyle(GoulTheme.ink)
-                        .lineLimit(2).textSelection(.enabled).multilineTextAlignment(.center)
+        GeometryReader { g in
+            let k = min(1, g.size.height / S.referenceHeight)
+            // No ScrollView: everything scales with `k` so the page always fits the panel.
+                VStack(spacing: S.contentSpacing * k) {
+                    theme.image("logo-light")?.resizable().scaledToFit().frame(height: S.logoHeight * k).accessibilityLabel("Goul")
+                    divider
+                    recordButton(size: S.recordSize * k)
+                    Text(controller.state.isActive || controller.isPreparing
+                         ? controller.statusTitle : "Hold \(settings.pushToTalkKey.displayName) to speak")
+                        .font(GoulTheme.title).foregroundStyle(GoulTheme.ink)
+                    if controller.state.isActive {
+                        ProgressView(value: Double(controller.level)).tint(GoulTheme.red).frame(maxWidth: S.recordSize * 2)
+                        if !controller.transcript.isEmpty {
+                            Text(controller.transcript).font(GoulTheme.body).foregroundStyle(GoulTheme.ink)
+                                .lineLimit(2).textSelection(.enabled).multilineTextAlignment(.center)
+                        }
+                    }
+                    if case .error(let message) = controller.state {
+                        Text(message).font(GoulTheme.caption).foregroundStyle(GoulTheme.red).textSelection(.enabled)
+                    }
+                    divider
+                    languagePill
+                    if !controller.setupMessage.isEmpty {
+                        Text(controller.setupMessage).font(GoulTheme.caption).foregroundStyle(GoulTheme.muted)
+                            .multilineTextAlignment(.center).textSelection(.enabled)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    logCard(maxHeight: S.logMaxHeight * k)
+                    Spacer(minLength: 0)
                 }
-            }
-            if case .error(let message) = controller.state {
-                Text(message).font(GoulTheme.caption).foregroundStyle(GoulTheme.red).textSelection(.enabled)
-            }
-            divider
-            languagePill
-            if !controller.setupMessage.isEmpty {
-                Text(controller.setupMessage).font(GoulTheme.caption).foregroundStyle(GoulTheme.muted)
-                    .multilineTextAlignment(.center).textSelection(.enabled)
-            }
-            logCard
-            Spacer(minLength: 0)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
-        .frame(maxWidth: .infinity)
     }
 
-    private var recordButton: some View {
+    private func recordButton(size: CGFloat) -> some View {
         let active = controller.state.isActive
         return Button {
             active ? controller.stopButtonRecording() : controller.startButtonRecording()
@@ -163,13 +169,13 @@ struct IllustratedScene: View {
             ZStack {
                 theme.image(active ? "record-active" : "record-idle")?.resizable().scaledToFit()
                 Image(systemName: active ? "stop.fill" : "mic.fill")
-                    .font(.system(size: S.recordGlyph, weight: .semibold))
+                    .font(.system(size: S.recordGlyph * size / S.recordSize, weight: .semibold))
                     .foregroundStyle(GoulTheme.inkOnChrome)
                     .shadow(color: .black.opacity(0.35), radius: 3, y: 2)
             }
         }
         .buttonStyle(.plain)
-        .frame(width: S.recordSize, height: S.recordSize)
+        .frame(width: size, height: size)
         .disabled(controller.isPreparing)
         .help(active ? "Finish the test recording" : "Test the microphone here; text stays in the log")
         .accessibilityLabel(active ? "Finish test recording" : "Test microphone")
@@ -187,7 +193,7 @@ struct IllustratedScene: View {
         .accessibilityLabel("Language detected automatically: English or French")
     }
 
-    private var logCard: some View {
+    private func logCard(maxHeight: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: DS.Space.base) {
             HStack {
                 Label("Captain’s log", systemImage: "book.closed").font(GoulTheme.title).foregroundStyle(GoulTheme.ink)
@@ -212,7 +218,7 @@ struct IllustratedScene: View {
                             LogEntry(run: run)
                         }
                     }
-                }.frame(maxHeight: S.logMaxHeight)
+                }.frame(maxHeight: maxHeight)
             }
         }
         .padding(DS.Space.roomy)
