@@ -25,3 +25,4 @@ models/
 
 # The earlier Windows port stays local for now; not part of the public repo.
 windows/
+.github/workflows/windows.yml
