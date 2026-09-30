@@ -43,7 +43,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         if let slug = ProcessInfo.processInfo.environment["GOUL_THEME_SNAPSHOT"] {
             ThemeManager.shared.select(slug)
-            for (label, size) in [("large", CGSize(width: 1280, height: 840)), ("small", CGSize(width: 1000, height: 700))] {
+            for (label, size) in [("large", CGSize(width: 1280, height: 840)), ("small", CGSize(width: 1040, height: 760))] {
                 let renderer = ImageRenderer(content: MainWindow(controller: controller).frame(width: size.width, height: size.height))
                 renderer.scale = 2
                 if let image = renderer.nsImage, let tiff = image.tiffRepresentation,

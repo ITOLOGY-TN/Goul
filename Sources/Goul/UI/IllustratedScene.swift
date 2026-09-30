@@ -128,7 +128,7 @@ struct IllustratedScene: View {
 
     private var dictation: some View {
         GeometryReader { g in
-            let k = min(1, g.size.height / S.referenceHeight)
+            let k = min(1, g.size.height / S.referenceHeight, g.size.width / S.referenceWidth)
             // No ScrollView: everything scales with `k` so the page always fits the panel.
                 VStack(spacing: S.contentSpacing * k) {
                     theme.image("logo-light")?.resizable().scaledToFit().frame(height: S.logoHeight * k).accessibilityLabel("Goul")
@@ -152,7 +152,7 @@ struct IllustratedScene: View {
                     if !controller.setupMessage.isEmpty {
                         Text(controller.setupMessage).font(GoulTheme.caption).foregroundStyle(GoulTheme.muted)
                             .multilineTextAlignment(.center).textSelection(.enabled)
-                            .fixedSize(horizontal: false, vertical: true)
+                            .lineLimit(k < 1 ? 1 : 3).truncationMode(.tail)
                     }
                     logCard(maxHeight: S.logMaxHeight * k)
                     Spacer(minLength: 0)

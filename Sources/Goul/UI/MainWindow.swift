@@ -22,7 +22,8 @@ struct MainWindow: View {
             if themes.current.isIllustrated { IllustratedScene(controller: controller, theme: themes.current, section: $section) }
             else { classic }
         }
-        .frame(minWidth: GoulTheme.minimumWidth, minHeight: GoulTheme.minimumHeight)
+        .frame(minWidth: themes.current.isIllustrated ? GoulTheme.Scene.minimumWindow.width : GoulTheme.minimumWidth,
+               minHeight: themes.current.isIllustrated ? GoulTheme.Scene.minimumWindow.height : GoulTheme.minimumHeight)
         .preferredColorScheme(.light)
         .tint(GoulTheme.ocean)
     }

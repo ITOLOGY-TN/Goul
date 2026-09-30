@@ -73,7 +73,10 @@ enum GoulTheme {
         static let logMaxHeight: CGFloat = 260
         /// Content height at which the dictation page is drawn at full size; below it,
         /// logo, button and spacing scale down proportionally so nothing leaves the panel.
-        static let referenceHeight: CGFloat = 680
+        static let referenceHeight: CGFloat = 780
+        static let referenceWidth: CGFloat = 640
+        /// Illustrated themes need more room than the classic layout.
+        static let minimumWindow = CGSize(width: 1040, height: 760)
         static let contentSpacing: CGFloat = 14
         static let defaultWindow = CGSize(width: 1280, height: 840)
         static let thumbnailWidth: CGFloat = 132
