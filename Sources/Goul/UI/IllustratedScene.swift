@@ -12,8 +12,6 @@ struct IllustratedScene: View {
     @Binding var section: MainWindow.Section
     @State private var settings = Settings.shared
     @State private var store = RunStore.shared
-    @State private var query = ""
-    @State private var showClear = false
     private typealias S = GoulTheme.Scene
 
     var body: some View {
@@ -42,6 +40,7 @@ struct IllustratedScene: View {
             VStack(alignment: .leading, spacing: DS.Space.snug) {
                 theme.image("logo-dark")?.resizable().scaledToFit()
                     .frame(height: S.logoSidebarHeight).frame(maxWidth: .infinity)
+                    .padding(.horizontal, -DS.Space.base)  // let the lockup use the rail's full width
                     .padding(.top, DS.Space.panel).padding(.bottom, DS.Space.wide).accessibilityLabel("Goul")
                 ForEach(MainWindow.Section.allCases, id: \.self) { item in
                     Button { section = item } label: {
@@ -82,6 +81,11 @@ struct IllustratedScene: View {
             Group {
                 switch section {
                 case .dictation: dictation
+                case .log:
+                    VStack(alignment: .leading, spacing: DS.Space.base) {
+                        header("Captain’s log", detail: settings.historyEnabled ? "Saved on this Mac." : "This session only. Turn on history in Settings to keep it.")
+                        LogPage()
+                    }
                 case .dictionary:
                     VStack(alignment: .leading, spacing: DS.Space.base) {
                         header("Your word treasure", detail: "Teach Goul names, places, and the words that matter to you.")
@@ -131,6 +135,7 @@ struct IllustratedScene: View {
             let k = min(1, g.size.height / S.referenceHeight, g.size.width / S.referenceWidth)
             // No ScrollView: everything scales with `k` so the page always fits the panel.
                 VStack(spacing: S.contentSpacing * k) {
+                    Spacer(minLength: 0)
                     theme.image("logo-light")?.resizable().scaledToFit().frame(height: S.logoHeight * k).accessibilityLabel("Goul")
                     divider
                     recordButton(size: S.recordSize * k)
@@ -154,10 +159,10 @@ struct IllustratedScene: View {
                             .multilineTextAlignment(.center).textSelection(.enabled)
                             .lineLimit(k < 1 ? 1 : 3).truncationMode(.tail)
                     }
-                    logCard(maxHeight: S.logMaxHeight * k)
+                    if let last = store.runs.last { lastEntry(last) }
                     Spacer(minLength: 0)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 
@@ -193,40 +198,22 @@ struct IllustratedScene: View {
         .accessibilityLabel("Language detected automatically: English or French")
     }
 
-    private func logCard(maxHeight: CGFloat) -> some View {
-        VStack(alignment: .leading, spacing: DS.Space.base) {
-            HStack {
-                Label("Captain’s log", systemImage: "book.closed").font(GoulTheme.title).foregroundStyle(GoulTheme.ink)
+    /// A one-line reminder of the latest transcript; the full log has its own page.
+    private func lastEntry(_ run: DictationRun) -> some View {
+        Button { section = .log } label: {
+            HStack(spacing: DS.Space.base) {
+                Image(systemName: "book.closed")
+                Text(run.text).lineLimit(1)
                 Spacer()
-                Text(settings.historyEnabled ? "Saved on this Mac" : "This session only")
-                    .font(GoulTheme.caption).foregroundStyle(GoulTheme.muted)
-                if !store.runs.isEmpty {
-                    Button("Clear") { showClear = true }.buttonStyle(.plain).foregroundStyle(GoulTheme.muted)
-                }
+                Image(systemName: "chevron.right")
             }
-            if store.runs.isEmpty {
-                Text("Every adventure begins with a word. Try the microphone, or hold your shortcut in another app.")
-                    .font(GoulTheme.body).foregroundStyle(GoulTheme.muted)
-            } else {
-                HStack {
-                    Image(systemName: "magnifyingglass")
-                    TextField("Search your log", text: $query).textFieldStyle(.plain)
-                }.font(GoulTheme.body).foregroundStyle(GoulTheme.muted)
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: DS.Space.roomy) {
-                        ForEach(store.runs.reversed().filter { query.isEmpty || $0.text.localizedStandardContains(query) }) { run in
-                            LogEntry(run: run)
-                        }
-                    }
-                }.frame(maxHeight: maxHeight)
-            }
+            .font(GoulTheme.caption).foregroundStyle(GoulTheme.muted)
+            .padding(DS.Space.base)
+            .background(Color.white.opacity(S.cardOpacity), in: .rect(cornerRadius: S.cardRadius))
+            .overlay(RoundedRectangle(cornerRadius: S.cardRadius).strokeBorder(GoulTheme.ink.opacity(0.15)))
         }
-        .padding(DS.Space.roomy)
-        .background(Color.white.opacity(S.cardOpacity), in: .rect(cornerRadius: S.cardRadius))
-        .overlay(RoundedRectangle(cornerRadius: S.cardRadius).strokeBorder(GoulTheme.ink.opacity(0.15)))
-        .confirmationDialog("Clear the captain’s log?", isPresented: $showClear) {
-            Button("Clear all transcripts", role: .destructive) { RunLog.clear() }
-        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Open the captain’s log")
     }
 
     // MARK: - Mascot

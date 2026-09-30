@@ -58,7 +58,7 @@ enum GoulTheme {
         /// Distance from the panel's outer edge to its content, independent of the frame.
         static let contentInset: CGFloat = 60
         static let panelMargin: CGFloat = 24
-        static let logoHeight: CGFloat = 84
+        static let logoHeight: CGFloat = 136
         static let dividerHeight: CGFloat = 12
         static let recordSize: CGFloat = 176
         static let recordGlyph: CGFloat = 60
@@ -70,11 +70,11 @@ enum GoulTheme {
         static let navPillOpacity: Double = 0.22
         static let cardOpacity: Double = 0.42
         static let cardRadius: CGFloat = 14
-        static let logoSidebarHeight: CGFloat = 96
+        static let logoSidebarHeight: CGFloat = 116
         static let logMaxHeight: CGFloat = 260
         /// Content height at which the dictation page is drawn at full size; below it,
         /// logo, button and spacing scale down proportionally so nothing leaves the panel.
-        static let referenceHeight: CGFloat = 780
+        static let referenceHeight: CGFloat = 720
         static let referenceWidth: CGFloat = 640
         /// Illustrated themes need more room than the classic layout.
         static let minimumWindow = CGSize(width: 1040, height: 760)
