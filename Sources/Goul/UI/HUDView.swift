@@ -18,6 +18,7 @@ struct HUDModel: Equatable {
     var tintStrength: Double = GoulTheme.HUD.defaultTintStrength
     var outline = true
     var mascot = true
+    var instrument: Color = GoulTheme.HUD.gold
 
     @MainActor init(controller: DictationController) {
         state = controller.state
@@ -32,6 +33,7 @@ struct HUDModel: Equatable {
         tintStrength = settings.hudTintStrength
         outline = settings.hudOutline
         mascot = settings.hudMascotEnabled
+        instrument = GoulTheme.instrument
     }
     init(state: DictationController.State = .listening, mode: DictationController.Mode = .dictation,
          transcript: String = "", level: Float = 0, language: SpokenLanguage? = nil, liveText: Bool = false) {
@@ -119,7 +121,7 @@ struct HUDContent: View {
             } else if model.isWorking {
                 Spinner().transition(.opacity.combined(with: .scale))
             }
-            instrument
+            instrument.foregroundStyle(model.instrument)
             if let text = model.text {
                 Text(text)
                     .font(T.font)
@@ -161,7 +163,7 @@ private struct LevelBars: View {
             let t = timeline.date.timeIntervalSinceReferenceDate
             HStack(alignment: .center, spacing: T.barGap) {
                 ForEach(0..<T.barCount, id: \.self) { index in
-                    Capsule().fill(T.gold)
+                    Capsule().fill(.foreground)
                         .frame(width: T.barWidth, height: height(index, t))
                 }
             }
@@ -182,7 +184,7 @@ private struct IdleDots: View {
     var body: some View {
         HStack(spacing: T.dotGap) {
             ForEach(0..<T.dotCount, id: \.self) { _ in
-                Circle().fill(T.gold.opacity(0.7)).frame(width: T.dotSize, height: T.dotSize)
+                Circle().fill(.foreground).opacity(0.7).frame(width: T.dotSize, height: T.dotSize)
             }
         }
     }

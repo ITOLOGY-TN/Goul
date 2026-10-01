@@ -9,8 +9,12 @@ struct GoulApp: App {
         Window("Goul", id: "main") {
             MainWindow(controller: delegate.controller)
                 .onExitCommand { delegate.controller.cancelDictation() }
+                // The scene runs under the traffic lights; the title bar is transparent.
+                .ignoresSafeArea(.container, edges: .top)
+                .toolbarBackground(.hidden, for: .windowToolbar)
         }
-        .defaultSize(width: 1060, height: 740)
+        .windowStyle(.hiddenTitleBar)
+        .defaultSize(width: GoulTheme.Scene.defaultWindow.width, height: GoulTheme.Scene.defaultWindow.height)
         .windowResizability(.contentMinSize)
         .commands {
             CommandGroup(replacing: .newItem) {}
@@ -37,6 +41,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NSApp.terminate(nil)
             return
         }
+        if let slug = ProcessInfo.processInfo.environment["GOUL_THEME_SNAPSHOT"] {
+            ThemeManager.shared.select(slug)
+            for (label, size) in [("large", CGSize(width: 1280, height: 840)), ("small", CGSize(width: 1040, height: 760))] {
+                let renderer = ImageRenderer(content: MainWindow(controller: controller).frame(width: size.width, height: size.height))
+                renderer.scale = 2
+                if let image = renderer.nsImage, let tiff = image.tiffRepresentation,
+                   let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) {
+                    try? png.write(to: URL(fileURLWithPath: "/tmp/goul-theme-\(slug)-\(label).png"))
+                }
+            }
+            NSApp.terminate(nil)
+            return
+        }
         if let path = ProcessInfo.processInfo.environment["GOUL_SETTINGS_SNAPSHOT"] {
             for section in SettingsWindow.SettingsSection.allCases {
                 let renderer = ImageRenderer(content: SettingsWindow(controller: controller, section: section, scrolls: false)
@@ -53,8 +70,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         NSApp.setActivationPolicy(.regular)
         hud = HUDPanel(controller: controller)
+        controller.onStateChange = { [weak self] state in
+            guard let self else { return }
+            if state.isActive { self.hud?.present() } else { self.hud?.dismiss() }
+        }
         controller.activate()
-        observeState()
         observers.append(NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in self?.controller.interrupted() }
         })
@@ -87,15 +107,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                   let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) else { continue }
             let url = URL(fileURLWithPath: path).deletingPathExtension().appendingPathExtension("\(name).png")
             try? png.write(to: url)
-        }
-    }
-    private func observeState() {
-        withObservationTracking { _ = controller.state } onChange: { [weak self] in
-            Task { @MainActor in
-                guard let self else { return }
-                if self.controller.state.isActive { self.hud?.present() } else { self.hud?.dismiss() }
-                self.observeState()
-            }
         }
     }
 }

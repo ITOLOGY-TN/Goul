@@ -9,11 +9,15 @@ struct SettingsWindow: View {
     @State private var section: SettingsSection
     /// Off only for the off-screen snapshots: `ImageRenderer` gives a `ScrollView` no size.
     private let scrolls: Bool
+    /// Inside an illustrated theme's panel the artwork is the background.
+    private let transparent: Bool
+    @State private var themes = ThemeManager.shared
 
-    init(controller: DictationController, section: SettingsSection = .shortcuts, scrolls: Bool = true) {
+    init(controller: DictationController, section: SettingsSection = .shortcuts, scrolls: Bool = true, transparent: Bool = false) {
         self.controller = controller
         _section = State(initialValue: section)
         self.scrolls = scrolls
+        self.transparent = transparent
     }
 
     enum SettingsSection: String, CaseIterable, Identifiable {
@@ -52,7 +56,7 @@ struct SettingsWindow: View {
             Divider().overlay(GoulTheme.line)
             if scrolls { ScrollView { detail } } else { detail }
         }
-        .background(GoulTheme.paper).foregroundStyle(GoulTheme.ink).preferredColorScheme(.light)
+        .background(transparent ? Color.clear : GoulTheme.paper).foregroundStyle(GoulTheme.ink).preferredColorScheme(.light)
     }
 
     private var detail: some View {
@@ -96,7 +100,7 @@ struct SettingsWindow: View {
         .padding(DS.Space.base)
         .frame(width: GoulTheme.settingsRail, alignment: .leading)
         .frame(maxHeight: .infinity)
-        .background(GoulTheme.paper.opacity(0.6))
+        .background(transparent ? Color.clear : GoulTheme.paper.opacity(0.6))
     }
 
     // MARK: - Sections
@@ -152,6 +156,14 @@ struct SettingsWindow: View {
 
     private var appearance: some View {
         VStack(alignment: .leading, spacing: DS.Space.wide) {
+            group("Theme") {
+                ScrollView(.horizontal) {
+                    HStack(spacing: DS.Space.base) {
+                        ForEach(themes.themes) { theme in ThemeCard(theme: theme, selected: theme == themes.current) { themes.select(theme.id) } }
+                    }.padding(DS.Space.hair)
+                }
+                note("Generated theme packs live in Resources/Themes/<slug>/ — see docs/THEME-ASSET-PROMPT.md. The logbook theme needs no files. Applies immediately.")
+            }
             group("Floating pill") {
                 Picker("Style", selection: $settings.hudGlassStyle) {
                     Text("Solid colour").tag(HUDGlassStyle.solid)
@@ -186,10 +198,6 @@ struct SettingsWindow: View {
             group("Live text") {
                 Toggle("Show the sentence in the pill as you speak", isOn: $settings.liveTextEnabled)
                 note("The pill widens to show the end of the sentence. Apple Speech streams it; Parakeet shows it on release. Off by default: a small pill with a level meter.")
-            }
-            group("Theme") {
-                Label("Captain's logbook — parchment and ocean", systemImage: "sailboat")
-                note("The only theme for now. A dark-deck theme is on the list.")
             }
         }
     }
@@ -281,5 +289,40 @@ struct SettingsWindow: View {
     private func note(_ text: String) -> some View {
         Text(text).font(GoulTheme.caption).foregroundStyle(GoulTheme.muted)
             .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
+/// One theme in the picker: its scene (or its panel colour) and its name.
+private struct ThemeCard: View {
+    let theme: Theme
+    let selected: Bool
+    let choose: () -> Void
+    private typealias S = GoulTheme.Scene
+    var body: some View {
+        Button(action: choose) {
+            VStack(alignment: .leading, spacing: DS.Space.snug) {
+                ZStack {
+                    if let art = theme.image("background") {
+                        art.resizable().scaledToFill()
+                    } else {
+                        theme.palette.panel
+                        HStack(spacing: 0) {
+                            theme.palette.chrome.frame(width: S.thumbnailWidth * 0.28)
+                            Spacer()
+                        }
+                    }
+                }
+                .frame(width: S.thumbnailWidth, height: S.thumbnailHeight)
+                .clipShape(.rect(cornerRadius: DS.Radius.control))
+                .overlay(RoundedRectangle(cornerRadius: DS.Radius.control)
+                    .strokeBorder(selected ? GoulTheme.gold : GoulTheme.line.opacity(0.6), lineWidth: selected ? 2.5 : 1))
+                HStack(spacing: DS.Space.tight) {
+                    if selected { Image(systemName: "checkmark.circle.fill").foregroundStyle(GoulTheme.gold) }
+                    Text(theme.name).font(GoulTheme.caption).foregroundStyle(GoulTheme.ink)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(theme.name)\(selected ? ", selected" : "")")
     }
 }

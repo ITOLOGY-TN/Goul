@@ -61,6 +61,8 @@ app: build
 	@cp Resources/Info.plist "$(CONTENTS)/Info.plist"
 	@for resource in "$(SCRATCH)/$(CONFIG)"/*.bundle; do if [ -d "$$resource" ]; then cp -R "$$resource" "$(CONTENTS)/Resources/"; fi; done
 	@cp Resources/AppIcon.icns Resources/GoulIcon.png Resources/Voyage.png Resources/BrookSeated.png "$(CONTENTS)/Resources/"
+	@# Theme packs: every folder under Resources/Themes, minus reference mockups and sources.
+	@if [ -d Resources/Themes ]; then rsync -a --exclude 'reference.png' --exclude '*-source.png' Resources/Themes "$(CONTENTS)/Resources/"; fi
 	@printf 'APPL????' > "$(CONTENTS)/PkgInfo"
 	@# Belt and braces: the staging dir isn't synced, but the copied binary can still carry
 	@# xattrs inherited from the synced .build directory. FluidAudio's resource bundle

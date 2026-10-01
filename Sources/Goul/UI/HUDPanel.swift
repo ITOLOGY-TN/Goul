@@ -18,7 +18,11 @@ final class HUDPanel: NSPanel {
 
         isFloatingPanel = true
         level = .statusBar
-        collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
+        // Overlay semantics: on every Space (including full-screen ones), never part of
+        // Mission Control or ⌘-tab cycling. `.stationary` used to be in this set and was
+        // dropped: combined with `.canJoinAllSpaces` the panel stayed bound to the Space
+        // it was first shown on, so dictation on another desktop had sound but no HUD.
+        collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient, .ignoresCycle]
         hidesOnDeactivate = false
         isMovableByWindowBackground = false
         ignoresMouseEvents = true
@@ -57,14 +61,15 @@ final class HUDPanel: NSPanel {
     }
 
     func present() {
-        // Every active state change (starting → listening → finishing) calls this. Without
-        // the early exit the panel would reset to alpha 0 and re-fade on each one, which
-        // reads as a flicker mid-utterance.
-        guard !isVisible || alphaValue < 1 else { return }
-
+        // Every active state change (starting → listening → finishing) calls this. Always
+        // reposition and re-order — that is what brings the panel onto the current Space
+        // — but only fade in when it was actually hidden, or it flickers mid-utterance.
+        let wasShowing = isVisible && alphaValue >= 1
         reposition()
-        alphaValue = 0
+        if !wasShowing { alphaValue = 0 }
         orderFrontRegardless()
+        Log.app.info("hud: present at \(NSStringFromRect(self.frame), privacy: .public) onActiveSpace=\(self.isOnActiveSpace) visible=\(self.isVisible) wasShowing=\(wasShowing)")
+        guard !wasShowing else { return }
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.16
             animator().alphaValue = 1
@@ -72,6 +77,7 @@ final class HUDPanel: NSPanel {
     }
 
     func dismiss() {
+        Log.app.info("hud: dismiss visible=\(self.isVisible)")
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.16
             animator().alphaValue = 0

@@ -25,6 +25,9 @@ A personal project by Ahmed Bengarali, with a One Piece crew on board.
 - **Personal dictionary.** Names and jargon the engines keep missing, applied on every
   transcript and fed to Apple's recogniser as hints. The correction behaviour is a shared,
   tested contract (`shared/dictionary-test-vectors.json`).
+- **Themes.** The classic logbook, or an illustrated theme generated from a single prompt:
+  *Night Deck* puts the app on a pirate ship at night with Brook on a stool. Settings →
+  Appearance.
 - **A floating pill, not a window.** A small Wispr-Flow-sized capsule above the Dock with a
   gold waveform while you speak and Brook sitting on its right end. Solid colour, tinted
   Liquid Glass or native glass, your colour, optional live text: all in Settings.
@@ -139,8 +142,8 @@ Sources/
 └── MurmurDictionary/           the dictionary engine, shared contract with the Windows port
 Tests/                          GoulCoreTests, MurmurDictionaryTests (shared vectors)
 shared/                         dictionary-test-vectors.json, the correction contract
-Resources/                      icon, artwork, Brook, entitlements, Info.plist
-docs/                           LANGUAGE-DETECTION, COMMAND-MODE, HUD, THEME-ASSET-PROMPT, PARAKEET-WINDOWS
+Resources/                      icon, artwork, Brook, entitlements, Info.plist, Themes/<slug>/ asset packs
+docs/                           LANGUAGE-DETECTION, COMMAND-MODE, HUD, THEMES, THEME-ASSET-PROMPT, PARAKEET-WINDOWS
 Tools/                          language-probe.swift, makeicon.swift
 windows/                        an earlier C# / Avalonia port of the dictation core (builds in CI, never run on hardware)
 ```
@@ -168,7 +171,7 @@ GOUL_SETTINGS_SNAPSHOT=/tmp/settings.png /private/tmp/goul-build/Goul.app/Conten
 
 ## Roadmap
 
-- Themes: generated asset packs (`docs/THEME-ASSET-PROMPT.md`), a Night Deck theme first.
+- More themes from generated asset packs (`docs/THEME-ASSET-PROMPT.md`, `docs/THEMES.md`).
 - Onboarding for the two permissions.
 - Notarization for distribution.
 

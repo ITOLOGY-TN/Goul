@@ -8,21 +8,38 @@ struct MainWindow: View {
     @State private var section: Section = .dictation
     @State private var settings = Settings.shared
     @State private var store = RunStore.shared
-    @State private var query = ""
-    @State private var showClear = false
+    @State private var themes = ThemeManager.shared
     enum Section: String, CaseIterable {
-        case dictation = "Dictation", dictionary = "Dictionary", settings = "Settings"
+        case dictation = "Dictation", log = "Captain’s log", dictionary = "Dictionary", settings = "Settings"
         var symbol: String {
-            switch self { case .dictation: "waveform"; case .dictionary: "book.closed"; case .settings: "slider.horizontal.3" }
+            switch self {
+            case .dictation: "waveform"; case .log: "book.closed"
+            case .dictionary: "character.book.closed"; case .settings: "slider.horizontal.3"
+            }
         }
     }
     var body: some View {
+        Group {
+            if themes.current.isIllustrated { IllustratedScene(controller: controller, theme: themes.current, section: $section) }
+            else { classic }
+        }
+        .frame(minWidth: themes.current.isIllustrated ? GoulTheme.Scene.minimumWindow.width : GoulTheme.minimumWidth,
+               minHeight: themes.current.isIllustrated ? GoulTheme.Scene.minimumWindow.height : GoulTheme.minimumHeight)
+        .preferredColorScheme(.light)
+        .tint(GoulTheme.ocean)
+    }
+
+    /// The original logbook layout: rail, masthead, parchment page.
+    private var classic: some View {
         HStack(spacing: 0) {
             sidebar
             VStack(spacing: 0) {
                 if section == .dictation {
                     masthead
                     dictation
+                } else if section == .log {
+                    pageHeader("Captain’s log", detail: settings.historyEnabled ? "Saved on this Mac." : "This session only. Turn on history in Settings to keep it.")
+                    LogPage().padding(GoulTheme.inset)
                 } else if section == .dictionary {
                     pageHeader("Your word treasure", detail: "Teach Goul names, places, and the words that matter to you.")
                     DictionaryPanel().padding(GoulTheme.inset)
@@ -34,9 +51,6 @@ struct MainWindow: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(GoulTheme.paper)
         }
-        .frame(minWidth: GoulTheme.minimumWidth, minHeight: GoulTheme.minimumHeight)
-        .preferredColorScheme(.light)
-        .tint(GoulTheme.ocean)
     }
     private var sidebar: some View {
         VStack(alignment: .leading, spacing: GoulTheme.gap) {
@@ -105,43 +119,19 @@ struct MainWindow: View {
                     Text(controller.setupMessage).textSelection(.enabled)
                 }.font(GoulTheme.caption).foregroundStyle(GoulTheme.muted)
             }
-            Divider().overlay(GoulTheme.line)
-            HStack {
-                Text("Captain’s log").font(GoulTheme.title).foregroundStyle(GoulTheme.ink)
-                Spacer()
-                Text(settings.historyEnabled ? "Saved on this Mac" : "This session only")
-                    .font(GoulTheme.caption).foregroundStyle(GoulTheme.muted)
-                if !store.runs.isEmpty {
-                    Button("Clear") { showClear = true }.buttonStyle(.plain)
-                        .foregroundStyle(GoulTheme.muted)
-                }
-            }
-            if store.runs.isEmpty {
-                VStack(spacing: DS.Space.base) {
-                    Image(systemName: "text.bubble").font(.system(size: 30, weight: .light)).foregroundStyle(GoulTheme.muted)
-                    Text("Every adventure begins with a word.").font(GoulTheme.title).foregroundStyle(GoulTheme.ink)
-                    Text("Try the microphone here first. Your transcript will appear below.\nTo type into another app, focus its text field and hold your shortcut.")
-                        .font(GoulTheme.body).foregroundStyle(GoulTheme.muted)
-                        .multilineTextAlignment(.center)
-                }.frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
+            Spacer()
+            if let last = store.runs.last {
+                Divider().overlay(GoulTheme.line)
                 HStack {
-                    Image(systemName: "magnifyingglass")
-                    TextField("Search your log", text: $query).textFieldStyle(.plain)
-                }.font(GoulTheme.body).foregroundStyle(GoulTheme.muted)
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: DS.Space.roomy) {
-                        ForEach(store.runs.reversed().filter { query.isEmpty || $0.text.localizedStandardContains(query) }) { run in
-                            LogEntry(run: run)
-                        }
-                    }
+                    Text("Last entry").font(GoulTheme.caption).foregroundStyle(GoulTheme.muted)
+                    Spacer()
+                    Button("Open the log") { section = .log }.buttonStyle(.plain).font(GoulTheme.caption).foregroundStyle(GoulTheme.ocean)
                 }
+                Text(last.text).font(GoulTheme.body).foregroundStyle(GoulTheme.ink).lineLimit(2).textSelection(.enabled)
             }
         }.padding(GoulTheme.inset)
-            .confirmationDialog("Clear the captain’s log?", isPresented: $showClear) {
-                Button("Clear all transcripts", role: .destructive) { RunLog.clear() }
-            }
     }
+
     private var recorder: some View {
         VStack(alignment: .leading, spacing: DS.Space.base) {
             HStack(spacing: DS.Space.roomy) {
@@ -186,7 +176,7 @@ struct MainWindow: View {
     }
 }
 
-private struct LogEntry: View {
+struct LogEntry: View {
     let run: DictationRun
     @State private var copied = false
     var body: some View {
@@ -248,5 +238,45 @@ struct EmptyPanel: View {
             Text(label).font(GoulTheme.title)
             Text(detail).font(GoulTheme.body)
         }.foregroundStyle(DS.Color.inkOnDeck).frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+/// The full log: search, entries, clear. Its own view so both layouts share one state.
+struct LogPage: View {
+    @State private var store = RunStore.shared
+    @State private var query = ""
+    @State private var showClear = false
+    var body: some View {
+        VStack(alignment: .leading, spacing: DS.Space.roomy) {
+            HStack {
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                    TextField("Search your log", text: $query).textFieldStyle(.plain)
+                }.font(GoulTheme.body).foregroundStyle(GoulTheme.muted)
+                Spacer()
+                if !store.runs.isEmpty {
+                    Button("Clear") { showClear = true }.buttonStyle(.plain).foregroundStyle(GoulTheme.muted)
+                }
+            }
+            if store.runs.isEmpty {
+                VStack(spacing: DS.Space.base) {
+                    Image(systemName: "text.bubble").font(.system(size: 30, weight: .light)).foregroundStyle(GoulTheme.muted)
+                    Text("Every adventure begins with a word.").font(GoulTheme.title).foregroundStyle(GoulTheme.ink)
+                    Text("Your transcripts will appear here. Try the microphone on the Dictation page, or hold your shortcut in another app.")
+                        .font(GoulTheme.body).foregroundStyle(GoulTheme.muted).multilineTextAlignment(.center)
+                }.frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: DS.Space.roomy) {
+                        ForEach(store.runs.reversed().filter { query.isEmpty || $0.text.localizedStandardContains(query) }) { run in
+                            LogEntry(run: run)
+                        }
+                    }
+                }
+            }
+        }
+        .confirmationDialog("Clear the captain’s log?", isPresented: $showClear) {
+            Button("Clear all transcripts", role: .destructive) { RunLog.clear() }
+        }
     }
 }
