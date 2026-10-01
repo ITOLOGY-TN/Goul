@@ -31,7 +31,12 @@ final class DictationController {
     /// engine: Apple's finalizer takes seconds on near-empty audio, which read as a hang.
     static let minimumHold: TimeInterval = 0.3
 
-    private(set) var state: State = .idle
+    /// Fires synchronously on every state change, in order, with nothing skipped — the
+    /// HUD is driven from here rather than from `withObservationTracking`, which only
+    /// reports the first change after each registration and lost transitions when two
+    /// arrived in one run-loop turn (the HUD then never appeared, or never left).
+    var onStateChange: ((State) -> Void)?
+    private(set) var state: State = .idle { didSet { if oldValue != state { onStateChange?(state) } } }
     private(set) var mode: Mode = .dictation
     private(set) var transcript = ""
     /// Language of the current or most recent dictation, as the engine detected it.

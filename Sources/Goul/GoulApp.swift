@@ -70,8 +70,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         NSApp.setActivationPolicy(.regular)
         hud = HUDPanel(controller: controller)
+        controller.onStateChange = { [weak self] state in
+            guard let self else { return }
+            if state.isActive { self.hud?.present() } else { self.hud?.dismiss() }
+        }
         controller.activate()
-        observeState()
         observers.append(NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in self?.controller.interrupted() }
         })
@@ -104,15 +107,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                   let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) else { continue }
             let url = URL(fileURLWithPath: path).deletingPathExtension().appendingPathExtension("\(name).png")
             try? png.write(to: url)
-        }
-    }
-    private func observeState() {
-        withObservationTracking { _ = controller.state } onChange: { [weak self] in
-            Task { @MainActor in
-                guard let self else { return }
-                if self.controller.state.isActive { self.hud?.present() } else { self.hud?.dismiss() }
-                self.observeState()
-            }
         }
     }
 }
